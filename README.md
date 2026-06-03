@@ -1,2 +1,154 @@
-# UniBite
-UniBite: An innovative, responsive student food-sharing web platform designed to connect campus cooks with peers, reduce food waste, and manage meals using a gamified credit system. Built with PHP, Node.js, and JavaScript.
+#  UniBite
+
+> Φοιτητική πλατφόρμα διαμοιρασμού σπιτικού φαγητού — University Food Sharing Platform
+
+---
+
+##  Περιγραφή
+
+Το UniBite είναι μια web εφαρμογή που επιτρέπει σε φοιτητές να μοιράζονται σπιτικό φαγητό εντός του πανεπιστημίου. Ένας φοιτητής αναλαμβάνει τον ρόλο του μάγειρα και αναρτά αγγελίες με διαθέσιμες μερίδες, ενώ άλλοι φοιτητές ως καταναλωτές βλέπουν το feed, κάνουν κράτηση και αξιολογούν.
+
+Η εφαρμογή αναπτύχθηκε στο πλαίσιο του μαθήματος Προγραμματισμός & Συστήματα στον Παγκόσμιο Ιστό - Τμήμα Μηχανικών Η/Υ & Πληροφορικής, Πανεπιστήμιο Πατρών.
+
+---
+
+##  Ομάδα
+
+| Ρόλος | Αρμοδιότητα |
+|-------|-------------|
+| Φοιτητής Α | Μάγειρας, Dashboard, Admin Panel |
+| Φοιτητής Β | Καταναλωτής, Feed, Αξιολογήσεις, Responsive Design |
+
+---
+
+##  Τεχνολογίες
+
+| Επίπεδο | Τεχνολογία |
+|---------|-----------|
+| Front-end | HTML5, CSS3, Bootstrap 3, Vanilla JavaScript |
+| Back-end | PHP |
+| Βάση Δεδομένων | MySQL |
+| Server | Apache (WAMP) |
+
+---
+
+##  Δομή Project
+
+```
+unibite/
+└── public/
+    ├── login.html
+    ├── register.html
+    ├── dashboard.html
+    ├── create-meal.html
+    ├── admin.html
+    ├── feed.html
+    ├── meal-detail.html
+    ├── style.css
+    ├── auth.js
+    └── api/
+        ├── db.php
+        ├── login.php
+        ├── register.php
+        ├── logout.php
+        ├── get_meals.php
+        ├── insert_meal.php
+        ├── update_meal.php
+        ├── delete_meal.php
+        ├── get_requests.php
+        ├── update_request_status.php
+        ├── insert_request.php
+        ├── insert_rating.php
+        ├── get_user_points.php
+        ├── get_admin_stats.php
+        └── get_leaderboard.php
+```
+
+---
+
+##  Εγκατάσταση & Εκτέλεση
+
+### Προαπαιτούμενα
+- [WAMP Server](https://www.wampserver.com/) (Windows)
+
+### Βήματα
+
+1. Κλωνοποίηση repository
+```bash
+cd C:\wamp64\www
+git clone https://github.com/username/unibite.git
+```
+
+2. Εισαγωγή βάσης δεδομένων
+- Εκκίνηση WAMP (πράσινο εικονίδιο στο taskbar)
+- Άνοιγμα [phpMyAdmin](http://localhost/phpmyadmin)
+- Import → επιλογή αρχείου `database/unibite.sql`
+
+3. Εκκίνηση εφαρμογής
+
+Άνοιξε τον browser στο:
+```
+http://localhost/unibite/public/login.html
+```
+
+---
+
+##  Βάση Δεδομένων
+
+| Πίνακας | Περιγραφή |
+|---------|-----------|
+| `users` | Χρήστες (μάγειρες, καταναλωτές, admin) |
+| `meals` | Αγγελίες φαγητού |
+| `requests` | Αιτήματα κράτησης μερίδας |
+| `ratings` | Αξιολογήσεις (1-5 αστέρια) |
+
+Default Admin λογαριασμός:
+```
+Email:    admin@unibite.gr
+Password: admin123
+```
+
+---
+
+##  Λειτουργίες
+
+### Μάγειρας
+- Δημιουργία / επεξεργασία / διαγραφή αγγελίας φαγητού
+- Ορισμός μερίδων, τοποθεσίας παράδοσης και ωραρίου
+- Έγκριση / απόρριψη αιτημάτων κράτησης
+- Σήμανση παράδοσης μερίδας
+- Προβολή πόντων
+
+### Καταναλωτής
+- Feed αγγελιών με χάρτη και φίλτρα
+- Κράτηση διαθέσιμης μερίδας
+- Αξιολόγηση μάγειρα μετά την παραλαβή (1-5 αστέρια)
+- Παρακολούθηση πόντων
+
+### Admin
+- Στατιστικά πλατφόρμας (αγγελίες, αιτήματα, χρήστες ανά μήνα)
+- Leaderboard κορυφαίων μαγείρων
+
+---
+
+##  Σύστημα Πόντων
+
+- Κάθε νέος χρήστης ξεκινά με **5 πόντους**
+- Αφαίρεση **1 πόντου** αν δεν παραληφθεί κρατημένη μερίδα
+- Αφαίρεση **1 πόντου** αν δεν αξιολογηθεί εντός 48 ωρών
+
+---
+
+##  Κατάσταση Αγγελίας
+
+Η κατάσταση υπολογίζεται δυναμικά — δεν αποθηκεύεται στη βάση:
+
+| Κατάσταση | Συνθήκη |
+|-----------|---------|
+| Ενεργή | < 48 ώρες από δημιουργία ΚΑΙ διαθέσιμες μερίδες > 0 |
+| Ανενεργή | < 48 ώρες από δημιουργία ΚΑΙ διαθέσιμες μερίδες = 0 |
+| Ληγμένη | ≥ 48 ώρες από δημιουργία (κρύβεται από το feed) |
+
+---
+
+Ακαδημαϊκό project — Πανεπιστήμιο Πατρών © 2025-2026
