@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>UniBite — Αγγελίες</title>
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav class="navbar navbar-default">
+  <div class="container-fluid">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed"
+              data-toggle="collapse" data-target="#main-nav">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="#">UniBite</a>
+    </div>
+    <div class="collapse navbar-collapse" id="main-nav">
+      <ul class="nav navbar-nav navbar-right">
+        <li><a href="#">
+          <span id="user-name">...</span> |
+          <span id="user-points">–</span>
+        </a></li>
+        <li><a href="#" id="btn-logout">Αποσύνδεση</a></li>
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<!-- FILTER BAR -->
+<div id="filter-bar">
+  <div class="container-fluid">
+    <form class="form-inline">
+      <div class="form-group">
+        <label for="sort-select">Ταξινόμηση:</label>
+        <select id="sort-select" class="form-control input-sm">
+          <option value="newest">Νεότερες πρώτα</option>
+          <option value="distance">Κοντινότερες πρώτα</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="max-results">Εμφάνιση:</label>
+        <select id="max-results" class="form-control input-sm">
+          <option value="all">Όλες</option>
+          <option value="5">5</option>
+          <option value="10">10</option>
+          <option value="20">20</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <div class="checkbox">
+          <label>
+            <input type="checkbox" id="active-only"> Μόνο ενεργές
+          </label>
+        </div>
+      </div>
+      <button type="button" id="btn-locate" class="btn btn-default btn-sm">
+        Χρήση τοποθεσίας μου
+      </button>
+    </form>
+  </div>
+</div>
+
+<!-- ΚΥΡΙΟ ΠΕΡΙΕΧΟΜΕΝΟ -->
+<div class="container-fluid">
+  <div class="row">
+
+    <div class="col-xs-12 col-md-5">
+      <div id="loading">
+        <p class="text-center text-muted">Φόρτωση αγγελιών...</p>
+      </div>
+      <div id="meal-list"></div>
+      <div id="no-meals" class="alert alert-info hidden">
+        Δεν βρέθηκαν αγγελίες με τα επιλεγμένα κριτήρια.
+      </div>
+    </div>
+
+    <div class="col-xs-12 col-md-7">
+      <div id="map"></div>
+    </div>
+
+  </div>
+</div>
+
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<script>
+// -----------
+//  feed.js
+//------------
+
+var allMeals = [];
+var userLat  = null;
+var userLng  = null;
+var map;
+var markers  = [];
+
+document.addEventListener("DOMContentLoaded", function() {
+    initMap();
+    loadUserPoints();
+    loadMeals();
+
+    document.getElementById("sort-select").addEventListener("change", applyFilters);
+    document.getElementById("max-results").addEventListener("change", applyFilters);
+    document.getElementById("active-only").addEventListener("change", applyFilters);
+    document.getElementById("btn-locate").addEventListener("click", getUserLocation);
+    document.getElementById("btn-logout").addEventListener("click", doLogout);
+});
+
+function initMap() {
+    map = L.map("map").setView([38.2906, 21.7888], 14);
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        maxZoom: 19
+    }).addTo(map);
+}
+
+function loadUserPoints() {
+    fetch("api/get_user_points.php")
+        .then(function(res) { return res.json(); })
+        .then(function(data) {
+            if (data.success) {
+                document.getElementById("user-name").textContent =
+                    data.firstName + " " + data.lastName;
+                document.getElementById("user-points").textContent =
+                    data.points + " πόντοι";
+            } else {
+                alert("Η συνεδρία έληξε. Παρακαλώ συνδεθείτε ξανά.");
+            }
+        });
+}
+
+function loadMeals() {
+    fetch("api/get_meals.php")
+        .then(function(res) { return res.json(); })
+        .then(function(data) {
+            document.getElementById("loading").classList.add("hidden");
+            if (data.success) {
+                allMeals = data.meals;
+                applyFilters();
+            } else {
+                alert("Η συνεδρία έληξε. Παρακαλώ συνδεθείτε ξανά.");
+            }
+        });
+}
+
+function applyFilters() {
+    var activeOnly = document.getElementById("active-only").checked;
+    var sortBy     = document.getElementById("sort-select").value;
+    var maxVal     = document.getElementById("max-results").value;
+
+    // Αντίγραφο του πίνακα
+    var filtered = allMeals.slice();
+
+    // Φίλτρο: μόνο ενεργές
+    if (activeOnly) {
+        filtered = filtered.filter(function(m) {
+            return m.status === "active";
+        });
+    }
+
+    // Ταξινόμηση
+    if (sortBy === "distance" && userLat !== null) {
+        filtered.sort(function(a, b) {
+            var dA = (a.lat && a.lng) ? haversine(userLat, userLng, a.lat, a.lng) : 9999;
+            var dB = (b.lat && b.lng) ? haversine(userLat, userLng, b.lat, b.lng) : 9999;
+            return dA - dB;
+        });
+    }
+
+    // Περιορισμός αποτελεσμάτων
+    if (maxVal !== "all") {
+        filtered = filtered.slice(0, maxVal);
+    }
+
+    renderMeals(filtered);
+    renderMapMarkers(filtered);
+}
+
+function renderMeals(meals) {
+    var list    = document.getElementById("meal-list");
+    var noMeals = document.getElementById("no-meals");
+
+    if (meals.length === 0) {
+        list.innerHTML = "";
+        noMeals.classList.remove("hidden");
+        return;
+    }
+    noMeals.classList.add("hidden");
+
+    var html = "";
+
+    meals.forEach(function(meal) {
+        var isActive   = meal.status === "active";
+        var cardClass  = isActive ? "meal-card panel panel-default"
+                                  : "meal-card meal-inactive panel panel-default";
+        var statusBadge = isActive
+            ? '<span class="label label-success">Ενεργή</span>'
+            : '<span class="label label-default">Ανενεργή</span>';
+
+        var distHtml = "";
+        if (userLat !== null && meal.lat && meal.lng) {
+            var d = haversine(userLat, userLng, meal.lat, meal.lng);
+            distHtml = '<span class="label label-info">' + Math.round(d) + ' km</span> ';
+        }
+
+        var allerHtml = "";
+        if (meal.allergens && meal.allergens !== "") {
+            allerHtml = '<p><span class="label label-warning">' + meal.allergens + '</span></p>';
+        }
+
+        html += '<div class="' + cardClass + '">' +
+                  '<div class="panel-body">' +
+                    '<div class="clearfix">' +
+                      '<h4 class="pull-left meal-title">' + meal.title + '</h4>' +
+                      '<div class="pull-right">' + distHtml + statusBadge + '</div>' +
+                    '</div>' +
+                    '<p class="meal-meta text-muted">' +
+                      meal.cook_firstName + ' ' + meal.cook_lastName +
+                    '</p>' +
+                    '<div class="row">' +
+                      '<div class="col-xs-6">' +
+                        '<small><strong>Μερίδες</strong></small><br>' +
+                        meal.portions_available + ' / ' + meal.portions_total +
+                      '</div>' +
+                      '<div class="col-xs-6">' +
+                        '<small><strong>Ώρα</strong></small><br>' +
+                        meal.pickup_time +
+                      '</div>' +
+                    '</div>' +
+                    '<p class="meal-location">' + meal.pickup_location + '</p>' +
+                    allerHtml +
+                    '<a href="meal-detail.html?id=' + meal.id + '" ' +
+                       'class="btn btn-primary btn-sm btn-block">Λεπτομέρειες</a>' +
+                  '</div>' +
+                '</div>';
+    });
+
+    list.innerHTML = html;
+}
+
+function renderMapMarkers(meals) {
+    markers.forEach(function(m) { map.removeLayer(m); });
+    markers = [];
+
+    meals.forEach(function(meal) {
+        if (!meal.lat || !meal.lng) return;
+
+        var isActive = meal.status === "active";
+        var marker = L.circleMarker(
+            [meal.lat, meal.lng],
+            {
+                radius:      10,
+                color:       isActive ? "#e67e22" : "#aaa",
+                fillColor:   isActive ? "#e67e22" : "#ccc",
+                fillOpacity: 0.85,
+                weight:      2
+            }
+        ).addTo(map).bindPopup(
+            '<strong>' + meal.title + '</strong><br>' +
+            meal.cook_firstName + ' ' + meal.cook_lastName + '<br>' +
+            'Μερίδες: ' + meal.portions_available + '<br>' +
+            '<a href="meal-detail.html?id=' + meal.id + '">Λεπτομέρειες</a>'
+        );
+        markers.push(marker);
+    });
+}
+
+function getUserLocation() {
+    if (!navigator.geolocation) {
+        alert("Ο browser σου δεν υποστηρίζει geolocation.");
+        return;
+    }
+
+    var btn = document.getElementById("btn-locate");
+    btn.textContent = "Εντοπισμός...";
+    btn.disabled    = true;
+
+    navigator.geolocation.getCurrentPosition(
+        function(position) {
+            userLat = position.coords.latitude;
+            userLng = position.coords.longitude;
+
+            btn.textContent = "Τοποθεσία ενεργή";
+            btn.classList.add("btn-success");
+            btn.classList.remove("btn-default");
+
+            L.marker([userLat, userLng]).addTo(map).bindPopup("Η τοποθεσία σου");
+            map.setView([userLat, userLng], 14);
+
+            document.getElementById("sort-select").value = "distance";
+            applyFilters();
+        },
+        function() {
+            btn.textContent = "Χρήση τοποθεσίας μου";
+            btn.disabled    = false;
+            alert("Δεν ήταν δυνατός ο εντοπισμός σου.");
+        }
+    );
+}
+
+function doLogout() {
+    fetch("api/logout.php")
+        .then(function() { window.location.href = "login.html"; });
+}
+
+// Haversine
+function haversine(lat1, lon1, lat2, lon2) {
+    var R    = 6371;
+    var dLat = (lat2 - lat1) * Math.PI / 180;
+    var dLon = (lon2 - lon1) * Math.PI / 180;
+    var a    = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+               Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+               Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+</script>
+
+</body>
+</html>
