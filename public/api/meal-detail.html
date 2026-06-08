@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>UniBite — Λεπτομέρειες</title>
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav class="navbar navbar-default">
+  <div class="container-fluid">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed"
+              data-toggle="collapse" data-target="#main-nav">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="#">UniBite</a>
+    </div>
+    <div class="collapse navbar-collapse" id="main-nav">
+      <ul class="nav navbar-nav navbar-right">
+        <li><a href="#">
+          <span id="user-name">...</span> |
+          <span id="user-points">–</span>
+        </a></li>
+        <li><a href="feed.html">Πίσω στο Feed</a></li>
+        <li><a href="#" id="btn-logout">Αποσύνδεση</a></li>
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<!-- ΚΥΡΙΟ ΠΕΡΙΕΧΟΜΕΝΟ -->
+<div class="container">
+
+  <div id="loading" class="text-center">
+    <p class="text-muted">Φόρτωση αγγελίας...</p>
+  </div>
+
+  <div id="error-box" class="alert alert-danger hidden"></div>
+
+  <div id="content" class="hidden">
+    <div class="row">
+
+      <div class="col-xs-12 col-md-7">
+
+        <img id="meal-photo" src="" alt="Φωτογραφία φαγητού"
+             class="img-responsive hidden">
+
+        <div class="panel panel-default">
+          <div class="panel-body">
+
+            <h2 id="meal-title"></h2>
+            <p class="text-muted">
+              <span id="cook-name"></span> &nbsp;·&nbsp;
+              <span id="meal-date"></span>
+            </p>
+
+            <h4>Περιγραφή</h4>
+            <p id="meal-desc"></p>
+
+            <div class="row">
+              <div class="col-xs-6">
+                <strong>Μερίδες:</strong><br>
+                <span id="meal-portions"></span>
+              </div>
+              <div class="col-xs-6">
+                <strong>Ώρα παραλαβής:</strong><br>
+                <span id="meal-time"></span>
+              </div>
+            </div>
+
+            <hr>
+            <strong>Σημείο παραλαβής:</strong><br>
+            <span id="meal-location"></span>
+
+            <div id="allergens-row" class="hidden">
+              <hr>
+              <strong>Αλλεργιογόνα:</strong><br>
+              <span id="allergens-list" class="label label-warning"></span>
+            </div>
+
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Χάρτης + Action panel -->
+      <div class="col-xs-12 col-md-5">
+
+        <div id="map"></div>
+
+        <div class="panel panel-default">
+          <div class="panel-heading">
+            <h4 class="panel-title">Κατάσταση Αιτήματος</h4>
+          </div>
+          <div class="panel-body">
+            <div id="action-content"></div>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<script>
+var mealId      = null;
+var userRequest = null;
+var selectedStar = 0;
+
+document.addEventListener("DOMContentLoaded", function() {
+    // URLSearchParams
+    var params = new URLSearchParams(window.location.search);
+    mealId = params.get("id");
+
+    if (!mealId) {
+        showError("Δεν βρέθηκε το id της αγγελίας. Επέστρεψε στο feed.");
+        return;
+    }
+
+    loadUserPoints();
+    loadMealDetail();
+
+    document.getElementById("btn-logout").addEventListener("click", doLogout);
+});
+
+function loadUserPoints() {
+    fetch("api/get_user_points.php")
+        .then(function(res) { return res.json(); })
+        .then(function(data) {
+            if (data.success) {
+                document.getElementById("user-name").textContent =
+                    data.firstName + " " + data.lastName;
+                document.getElementById("user-points").textContent =
+                    data.points + " πόντοι";
+            } else {
+                alert("Η συνεδρία έληξε. Παρακαλώ συνδεθείτε ξανά.");
+            }
+        });
+}
+
+function loadMealDetail() {
+    fetch("api/get_meals.php?id=" + mealId)
+        .then(function(res) { return res.json(); })
+        .then(function(data) {
+            document.getElementById("loading").classList.add("hidden");
+
+            if (!data.success) {
+                showError(data.message || "Σφάλμα φόρτωσης.");
+                return;
+            }
+
+            userRequest = data.user_request;
+
+            renderMealDetails(data.meal);
+            renderActionPanel(data.meal, data.user_request);
+            initMap(data.meal);
+
+            document.getElementById("content").classList.remove("hidden");
+        });
+}
+
+function renderMealDetails(meal) {
+    if (meal.photo) {
+        var img = document.getElementById("meal-photo");
+        img.src = "../uploads/" + meal.photo;
+        img.classList.remove("hidden");
+    }
+
+    document.getElementById("meal-title").textContent    = meal.title;
+    document.getElementById("cook-name").textContent     =
+        meal.cook_firstName + " " + meal.cook_lastName;
+
+    // Εμφάνιση ημερομηνίας
+    document.getElementById("meal-date").textContent     = meal.created_at;
+    document.getElementById("meal-desc").textContent     =
+        meal.description || "Χωρίς περιγραφή.";
+    document.getElementById("meal-portions").textContent =
+        meal.portions_available + " διαθέσιμες / " + meal.portions_total + " συνολικά";
+    document.getElementById("meal-time").textContent     = meal.pickup_time;
+    document.getElementById("meal-location").textContent = meal.pickup_location;
+
+    // Αλλεργιογόνα ως ένα string
+    if (meal.allergens && meal.allergens !== "") {
+        document.getElementById("allergens-row").classList.remove("hidden");
+        document.getElementById("allergens-list").textContent = meal.allergens;
+    }
+}
+
+function renderActionPanel(meal, request) {
+    var container = document.getElementById("action-content");
+
+    if (meal.status === "expired") {
+        container.innerHTML =
+            '<div class="alert alert-warning">Η αγγελία έχει λήξει (άνω των 48 ωρών).</div>';
+        return;
+    }
+
+    if (!request) {
+        if (meal.status === "inactive") {
+            container.innerHTML =
+                '<div class="alert alert-warning">Οι μερίδες έχουν εξαντληθεί.</div>';
+            return;
+        }
+        container.innerHTML =
+            '<p>Πάτα το κουμπί για να στείλεις αίτημα κράτησης στον μάγειρα.</p>' +
+            '<button id="btn-request" class="btn btn-primary btn-block">Κάνε Κράτηση</button>' +
+            '<div id="request-msg" class="hidden"></div>';
+
+        document.getElementById("btn-request")
+            .addEventListener("click", doRequest);
+        return;
+    }
+
+    if (request.status === "pending") {
+        container.innerHTML =
+            '<div class="alert alert-info">Το αίτημά σου είναι σε αναμονή έγκρισης.</div>';
+
+    } else if (request.status === "approved") {
+        container.innerHTML =
+            '<div class="alert alert-success">Εγκρίθηκε! Πήγαινε να παραλάβεις τη μερίδα σου.</div>';
+
+    } else if (request.status === "rejected") {
+        container.innerHTML =
+            '<div class="alert alert-danger">Το αίτημά σου απορρίφθηκε.</div>';
+
+    } else if (request.status === "not_collected") {
+        container.innerHTML =
+            '<div class="alert alert-danger">Δεν παρέλαβες τη μερίδα σου. Αφαιρέθηκε 1 πόντος.</div>';
+
+    } else if (request.status === "collected") {
+        if (request.rating) {
+            container.innerHTML =
+                '<div class="alert alert-success">Παρέλαβες τη μερίδα!</div>' +
+                '<p><strong>Η αξιολόγησή σου:</strong> ' + request.rating + ' / 5</p>';
+        } else {
+            container.innerHTML =
+                '<div class="alert alert-success">Παρέλαβες τη μερίδα! Αξιολόγησε τον μάγειρα.</div>' +
+                '<div id="stars" class="star-group"></div>' +
+                '<p id="star-label"></p>' +
+                '<button id="btn-rate" class="btn btn-success btn-block" disabled>' +
+                    'Υποβολή Αξιολόγησης' +
+                '</button>' +
+                '<div id="rate-msg" class="hidden"></div>';
+
+            buildStars();
+        }
+    }
+}
+
+function doRequest() {
+    var btn = document.getElementById("btn-request");
+    var msg = document.getElementById("request-msg");
+
+    btn.disabled    = true;
+    btn.textContent = "Αποστολή...";
+
+    var formData = new FormData();
+    formData.append("meal_id", mealId);
+
+    fetch("api/insert_request.php", { method: "POST", body: formData })
+        .then(function(res) { return res.json(); })
+        .then(function(data) {
+            msg.classList.remove("hidden");
+            if (data.success) {
+                msg.className   = "alert alert-success";
+                msg.textContent = data.message;
+                btn.classList.add("hidden");
+            } else {
+                msg.className   = "alert alert-danger";
+                msg.textContent = data.message;
+                btn.disabled    = false;
+                btn.textContent = "Κάνε Κράτηση";
+            }
+        });
+}
+
+function buildStars() {
+    var starsHtml = "";
+    for (var i = 1; i <= 5; i++) {
+        starsHtml += '<button class="star-btn" type="button">★</button>';
+    }
+    document.getElementById("stars").innerHTML = starsHtml;
+
+    var btns = document.getElementById("stars").querySelectorAll(".star-btn");
+
+    for (var i = 0; i < btns.length; i++) {
+        (function(val) {
+            btns[val - 1].addEventListener("click", function() {
+                selectedStar = val;
+
+                for (var j = 0; j < btns.length; j++) {
+                    if (j < val) {
+                        btns[j].classList.add("selected");
+                    } else {
+                        btns[j].classList.remove("selected");
+                    }
+                }
+
+                document.getElementById("star-label").textContent = val + " / 5";
+                document.getElementById("btn-rate").disabled = false;
+            });
+        })(i + 1);
+    }
+
+    // Σύνδεση κουμπιού υποβολής
+    document.getElementById("btn-rate").addEventListener("click", doRating);
+}
+
+function doRating() {
+    var btn = document.getElementById("btn-rate");
+    var msg = document.getElementById("rate-msg");
+
+    if (selectedStar === 0) return;
+
+    btn.disabled    = true;
+    btn.textContent = "Υποβολή...";
+
+    var formData = new FormData();
+    formData.append("request_id", userRequest.id);
+    formData.append("rating",     selectedStar);
+
+    fetch("api/insert_rating.php", { method: "POST", body: formData })
+        .then(function(res) { return res.json(); })
+        .then(function(data) {
+            msg.classList.remove("hidden");
+            if (data.success) {
+                msg.className   = "alert alert-success";
+                msg.textContent = data.message;
+                btn.textContent = "Υποβλήθηκε";
+            } else {
+                msg.className   = "alert alert-danger";
+                msg.textContent = data.message;
+                btn.disabled    = false;
+                btn.textContent = "Υποβολή Αξιολόγησης";
+            }
+        });
+}
+
+function initMap(meal) {
+    var lat = meal.lat ? meal.lat : 38.2906;
+    var lng = meal.lng ? meal.lng : 21.7888;
+
+    var map = L.map("map").setView([lat, lng], 15);
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        maxZoom: 19
+    }).addTo(map);
+
+    if (meal.lat && meal.lng) {
+        L.marker([meal.lat, meal.lng])
+            .addTo(map)
+            .bindPopup("<strong>" + meal.title + "</strong><br>" + meal.pickup_location)
+            .openPopup();
+    }
+}
+
+function showError(msg) {
+    document.getElementById("loading").classList.add("hidden");
+    var box = document.getElementById("error-box");
+    box.textContent = msg;
+    box.classList.remove("hidden");
+}
+
+function doLogout() {
+    fetch("api/logout.php")
+        .then(function() { window.location.href = "login.html"; });
+}
+</script>
+
+</body>
+</html>
