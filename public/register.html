@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>UniBite - Εγγραφή</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div class="container">
+        <div class="row">
+            <div class="col-md-6 col-md-offset-3 col-sm-8 col-sm-offset-2"></div>
+            <h2 class="text-center">Εγγραφή</h2>
+            <div id="error-msg" class="alert alert-danger hidden"></div>
+            <div id="success-msg" class="alert alert-success hidden"></div>
+
+            <form id="register-form">
+                <div class="row">
+                    <div class="col-sm-6">
+                        <div class="form-group">
+                            <label for="firstName">Όνομα</label>
+                            <input type="text" class="form-control" id="firstName" name="firstName" placeholder="'Ονομα">
+                        </div>
+                    </div>
+                    <div class="col-sm-6">
+                        <div class="form-group">
+                            <label for="lastName">Επώνυμο</label>
+                            <input type="text" class="form-control" id="lastName" name="lastName" placeholder="Επώνυμο">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input type="email" class="form-control" id="email" name="email" placeholder="π.χ. student@upatras.gr">
+                </div>
+
+                <div class="form-group">
+                    <label for="password">Κωδικός</label>
+                    <input type="password" class="form-control" id="password" name="password" placeholder="Τουλάχιστον 6 χαρακτήρες">
+                </div>
+
+                <div class="form-group">
+                    <label for="passwordConfirm">Επιβεβαίωση Κωδικού</label>
+                    <input type="password" class="form-control" id="passwordConfirm" name="passwordConfirm" placeholder="Επανάλαβε τον κωδικό">
+                </div>
+
+                <div class="form-group">
+                    <label for="role">Ρόλος</label>
+                    <select class="form-control" id="role" name="role">
+                        <option value="">-- Επίλεξε ρόλο --</option>
+                        <option value="cook">Μάγειρας</option>
+                        <option value="consumer">Καταναλωτής</option>
+                    </select>
+                </div>
+                 <button type="submit" class="btn btn-success btn-block">Δημιουργία Λογαριασμού</button>
+            </form>
+             </form>
+ 
+            <p class="text-center">Έχεις ήδη λογαριασμό; <a href="login.html">Σύνδεση εδώ</a></p>
+        </div>
+    </div>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+<script src="auth.js"></script>
+ 
+</body>
+</html>
