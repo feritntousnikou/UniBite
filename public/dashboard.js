@@ -1,37 +1,51 @@
-loadUserPoints();
-loadRequests();
-
-document.getElementById(`btn-Logout`).addEventListener(`click`, function() {
-    fetch(`api/logout.php`)
-    .then(function(res) { res.json(); })
+document.getElementById('btn-logout').addEventListener('click', function() {
+    fetch('api/logout.php')
+    .then(function(res) { return res.json(); })
     .then(function() {
-        localStorage.removeItem(`role`);
-        localStorage.removeItem(`userId`);
-        localStorage.removeItem(`firstName`);
-        window.location.href = `login.html`;
-        });
+        localStorage.removeItem('role');
+        localStorage.removeItem('userId');
+        localStorage.removeItem('firstName');
+        window.location.href = 'login.html';
+    });
+});
+
+document.getElementById('btn-logout').addEventListener('click', function() {
+    fetch('api/logout.php')
+    .then(function(res) { return res.json(); })
+    .then(function() {
+        localStorage.removeItem('role');
+        localStorage.removeItem('userId');
+        localStorage.removeItem('firstName');
+        window.location.href = 'login.html';
+    });
 });
 
 function loadUserPoints() {
-    fetch(`api/get_user_points.php`)
+    fetch('api/get_user_points.php')
+    .then(function(res) { return res.json(); })
     .then(function(data) {
-        if (data.success){
-            document.getElementById(`user-name`).textContent = data.firstName + ' ' + data.lastName;
-            document.getElementById(`user-points`).textContent = data.points + ' πόντοι';
+        console.log(data);
+        if (data.success) {
+            document.getElementById('user-name').textContent =
+                data.firstName + ' ' + data.lastName;
+            document.getElementById('user-points').textContent =
+                data.points + ' πόντοι';
         } else {
-            window.location.href = "login.html";
+            window.location.href = 'login.html';
         }
     });
 }
 
-function loadRequests(){
-    fetch(`api/get_requests.php`)
-    .then(function(res) {return res.json(); })
+loadUserPoints();
+
+function loadRequests() {
+    fetch('api/get_requests.php')
+    .then(function(res) { return res.json(); })
     .then(function(data) {
-        document.getElementById(`loading`).classList.add(`hidden`);
+        document.getElementById('loading').classList.add('hidden');
 
         if (!data.success) {
-            showMsg(`alert`, data.message);
+            showMsg('alert-danger', data.message);
             return;
         }
 
@@ -39,12 +53,12 @@ function loadRequests(){
     });
 }
 
-function loadRenderRequests(requests){
-    var container = document.getElementById(`requests-container`);
+function renderRequests(requests) {
+    var container = document.getElementById('requests-container');
 
     if (requests.length === 0) {
-        container.innerHTML = 
-        `<div class="alert alert-info">Δεν υπάρχουν αιτήματα ακόμα.</div>`;
+        container.innerHTML =
+            '<div class="alert alert-info">Δεν υπάρχουν αιτήματα ακόμα.</div>';
         return;
     }
 
@@ -61,22 +75,18 @@ function loadRenderRequests(requests){
             '<tbody>';
 
     requests.forEach(function(req) {
-        var actions = getActions(req);
- 
         html +=
             '<tr id="row-' + req.id + '">' +
                 '<td>' + req.meal_title + '</td>' +
                 '<td>' + req.consumer_firstName + ' ' + req.consumer_lastName + '</td>' +
                 '<td>' + getStatusLabel(req.status) + '</td>' +
-                '<td>' + actions + '</td>' +
+                '<td>' + getActions(req) + '</td>' +
             '</tr>';
     });
 
     html += '</tbody></table>';
- 
     container.innerHTML = html;
- 
-    
+
     requests.forEach(function(req) {
         attachButtons(req.id, req.status);
     });
@@ -84,12 +94,12 @@ function loadRenderRequests(requests){
 
 function getActions(req) {
     if (req.status === 'pending') {
-        return '<button class="btn btn-success btn-sm btn-approve" id="approve-' + req.id + '">Approve</button> ' +
-               '<button class="btn btn-danger btn-sm btn-reject"  id="reject-'  + req.id + '">Reject</button>';
+        return '<button class="btn btn-success btn-sm" id="approve-' + req.id + '">Approve</button> ' +
+               '<button class="btn btn-danger btn-sm"  id="reject-'  + req.id + '">Reject</button>';
     }
     if (req.status === 'approved') {
-        return '<button class="btn btn-primary btn-sm btn-collected"     id="collected-'     + req.id + '">Παρελήφθη</button> ' +
-               '<button class="btn btn-warning btn-sm btn-notcollected" id="notcollected-' + req.id + '">Δεν παρελήφθη</button>';
+        return '<button class="btn btn-primary btn-sm" id="collected-'     + req.id + '">Παρελήφθη</button> ' +
+               '<button class="btn btn-warning btn-sm" id="notcollected-' + req.id + '">Δεν παρελήφθη</button>';
     }
     return '—';
 }
@@ -107,7 +117,6 @@ function attachButtons(reqId, status) {
     if (status === 'pending') {
         var btnApprove = document.getElementById('approve-' + reqId);
         var btnReject  = document.getElementById('reject-'  + reqId);
- 
         if (btnApprove) {
             btnApprove.addEventListener('click', function() {
                 updateStatus(reqId, 'approved');
@@ -119,11 +128,9 @@ function attachButtons(reqId, status) {
             });
         }
     }
- 
     if (status === 'approved') {
         var btnCollected    = document.getElementById('collected-'    + reqId);
         var btnNotCollected = document.getElementById('notcollected-' + reqId);
- 
         if (btnCollected) {
             btnCollected.addEventListener('click', function() {
                 updateStatus(reqId, 'collected');
@@ -136,12 +143,12 @@ function attachButtons(reqId, status) {
         }
     }
 }
- 
- function updateStatus(reqId, newStatus) {
+
+function updateStatus(reqId, newStatus) {
     var formData = new FormData();
     formData.append('request_id', reqId);
     formData.append('status',     newStatus);
- 
+
     fetch('api/update_request_status.php', {
         method: 'POST',
         body: formData
@@ -157,10 +164,12 @@ function attachButtons(reqId, status) {
         }
     });
 }
-  
+
 function showMsg(type, text) {
     var el = document.getElementById('msg');
     el.className = 'alert ' + type;
     el.innerHTML = text;
     el.classList.remove('hidden');
 }
+
+loadRequests();

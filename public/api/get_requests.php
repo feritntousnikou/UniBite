@@ -1,16 +1,15 @@
 <?php
-
 session_start();
 header("Content-Type: application/json");
 include("db.php");
 
-if (!isset($_SESSION[`user_id`])) {
+if (!isset($_SESSION['user_id'])) {
     echo json_encode(["success" => false, "message" => "Μη εξουσιοδοτημένη πρόσβαση."]);
     $conn->close();
     exit();
 }
 
-$cook_id = $_SESSION[`user_id`];
+$cook_id = $_SESSION['user_id'];
 
 $sql = "SELECT
             r.id,

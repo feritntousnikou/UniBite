@@ -21,7 +21,7 @@ $email     = $_POST['email'];
 $password  = md5($_POST['password']);
 $role      = $_POST['role'];
  
-/* Έλεγχος αν υπάρχει ήδη το email */
+
 $sql_check = "SELECT id FROM users WHERE email = '$email'";
 $res_check = $conn->query($sql_check);
  

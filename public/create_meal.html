@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UniBite - Νέα Αγγελία</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<nav class="navbar navbar-default">
+    <div class="container">
+        <div class="navbar-header">
+            <button type="button" class="navbar-toggle collapsed"
+                    data-toggle="collapse" data-target="#main-nav">
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="dashboard.html">UniBite</a>
+        </div>
+        <div class="collapse navbar-collapse" id="main-nav">
+            <ul class="nav navbar-nav navbar-right">
+                <li>
+                    <a href="#">
+                        <span id="user-name">...</span> |
+                        <span id="user-points">–</span>
+                    </a>
+                </li>
+                <li><a href="dashboard.html">Dashboard</a></li>
+                <li><a href="#" id="btn-logout">Αποσύνδεση</a></li>
+            </ul>
+        </div>
+    </div>
+</nav>
+ 
+<div class="container">
+    <div class="row">
+        <div class="col-md-8 col-md-offset-2">
+ 
+            <h3>Νέα Αγγελία Φαγητού</h3>
+ 
+            <div id="error-msg" class="alert alert-danger hidden"></div>
+            <div id="success-msg" class="alert alert-success hidden"></div>
+ 
+            <form id="create-meal-form" enctype="multipart/form-data">
+ 
+                <div class="form-group">
+                    <label for="title">Τίτλος αγγελίας</label>
+                    <input type="text" class="form-control" id="title" name="title"
+                           placeholder="π.χ. Μοσχαράκι με πατάτες">
+                </div>
+ 
+                <div class="form-group">
+                    <label for="description">Περιγραφή / Σημειώσεις</label>
+                    <textarea class="form-control" id="description" name="description"
+                              rows="3" placeholder="Ελεύθερο κείμενο..."></textarea>
+                </div>
+ 
+                <div class="form-group">
+                    <label for="photo">Φωτογραφία (προαιρετική)</label>
+                    <input type="file" id="photo" name="photo" accept="image/*">
+                </div>
+ 
+                <div class="form-group">
+                    <label for="portions">Αριθμός μερίδων</label>
+                    <input type="number" class="form-control" id="portions" name="portions"
+                           placeholder="π.χ. 3" min="1">
+                </div>
+ 
+                <div class="form-group">
+                    <label for="pickup_location">Σημείο παράδοσης</label>
+                    <input type="text" class="form-control" id="pickup_location" name="pickup_location"
+                           placeholder="π.χ. Κτίριο Β, Αίθουσα 12">
+                </div>
+ 
+                <div class="form-group">
+                    <label for="pickup_time">Ώρα παραλαβής</label>
+                    <input type="text" class="form-control" id="pickup_time" name="pickup_time"
+                           placeholder="π.χ. 13:00 - 14:00">
+                </div>
+ 
+                <div class="form-group">
+                    <label>Αλλεργιογόνα</label>
+                    <div class="row">
+                        <div class="col-sm-4">
+                            <div class="checkbox"><label><input type="checkbox" name="allergens" value="Γλουτένη"> Γλουτένη</label></div>
+                            <div class="checkbox"><label><input type="checkbox" name="allergens" value="Οστρακοειδή"> Οστρακοειδή</label></div>
+                            <div class="checkbox"><label><input type="checkbox" name="allergens" value="Αυγά"> Αυγά</label></div>
+                            <div class="checkbox"><label><input type="checkbox" name="allergens" value="Ψάρι"> Ψάρι</label></div>
+                            <div class="checkbox"><label><input type="checkbox" name="allergens" value="Φιστίκια"> Φιστίκια</label></div>
+                        </div>
+                        <div class="col-sm-4">
+                            <div class="checkbox"><label><input type="checkbox" name="allergens" value="Σόγια"> Σόγια</label></div>
+                            <div class="checkbox"><label><input type="checkbox" name="allergens" value="Γάλα"> Γάλα</label></div>
+                            <div class="checkbox"><label><input type="checkbox" name="allergens" value="Ξηροί καρποί"> Ξηροί καρποί</label></div>
+                            <div class="checkbox"><label><input type="checkbox" name="allergens" value="Σέλινο"> Σέλινο</label></div>
+                            <div class="checkbox"><label><input type="checkbox" name="allergens" value="Μουστάρδα"> Μουστάρδα</label></div>
+                        </div>
+                        <div class="col-sm-4">
+                            <div class="checkbox"><label><input type="checkbox" name="allergens" value="Σουσάμι"> Σουσάμι</label></div>
+                            <div class="checkbox"><label><input type="checkbox" name="allergens" value="Θειώδη"> Θειώδη</label></div>
+                            <div class="checkbox"><label><input type="checkbox" name="allergens" value="Λούπινο"> Λούπινο</label></div>
+                            <div class="checkbox"><label><input type="checkbox" name="allergens" value="Μαλάκια"> Μαλάκια</label></div>
+                        </div>
+                    </div>
+                </div>
+ 
+                <button type="submit" class="btn btn-primary btn-block">
+                    Δημοσίευση Αγγελίας
+                </button>
+ 
+            </form>
+ 
+        </div>
+    </div>
+</div>
+ 
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+<script src="create_meal.js"></script>
+
+    
+</body>
+</html>

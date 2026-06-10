@@ -1,9 +1,8 @@
 <?php
+$conn = new mysqli('localhost', 'root', '', 'unibite');
 
-$conn = new mysqli('localhost', 'root', 'unibite');
-
-if ($conn->connect_error){
-    echo json_encode(["success => false, "message" => $conn->connect_error]);
+if ($conn->connect_error) {
+    echo json_encode(["success" => false, "message" => $conn->connect_error]);
     exit();
 }
 

@@ -42,19 +42,22 @@ if (loginForm) {
         })
         .then(function(res) { return res.json(); })
         .then(function(data) {
+            console.log(data);
             if (data.success) {
                 localStorage.setItem('role', data.role);
                 localStorage.setItem('userId', data.id);
                 localStorage.setItem('firstName', data.firstName);
-                if (data.role === 'cook' || data.role === 'admin') {
-                    window.location.href = 'dashboard.html';
-                } else {
-                    window.location.href = 'feed.html';
-                }
-            } else {
-                showError(data.message);
-            }
-        });
+                    if (data.role === 'admin') {
+                        window.location.href = 'admin.html';
+                    } else if (data.role === 'cook') {
+                        window.location.href = 'dashboard.html';
+                    } else {
+                        window.location.href = 'feed.html';
+                    }
+                    } else {
+                    showError(data.message);
+                    }
+})
  
     });
 }
