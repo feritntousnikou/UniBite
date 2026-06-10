@@ -51,4 +51,3 @@ CREATE TABLE IF NOT EXISTS ratings (
 
 INSERT INTO users (firstName, lastName, email, password, role, points)
 VALUES ('Admin', 'UniBite', 'admin@unibite.gr', MD5('admin123'), 'admin', 0);
-
