@@ -1,54 +1,97 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="el">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Unibite - Dashboard</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>UniBite - Dashboard</title>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    
-    <nav class="navbar navbar-default">
-        <div class="container">
-            <div class="navbar-header">
-                <button type="button" class="navbar-toggle collapsed"
-                        data-toggle="collapse" data-target="#main-nav"> 
-                    <span class="icon-bar"></span>
-                    <span class="icon-bar"></span>
-                    <span class="icon-bar"></span>
-                </button>
-                <a class="navbar-brand" href="dashboard.html">Unibite</a>
-            </div>
-            <div class="collapse navbar-collapse" id="main-nav">
-                <ul class="nav navbar-nav navbar-right">
-                    <li>
-                        <a href="#">
-                            <span id="user-name">...</span> |
-                            <span id="user-points">-</span>
-                        </a>
-                    </li>
-                    <li><a href="create_meal.html">Νέα αγγελία</a></li>
-                    <li><a href="#" id="btn-logout">Αποσύνδεση</a></li>
-                </ul>
-            </div>
-        </div>
-    </nav>
 
+<nav class="navbar navbar-default">
     <div class="container">
-
-        <div id="msg" class="hidden"></div>
-        <h3>Αιτήματα κράτησης</h3>
-
-        <div id="loading">
-            <p class="text-muted">Φόρτωση αιτημάτων...</p>
+        <div class="navbar-header">
+            <button type="button" class="navbar-toggle collapsed"
+                    data-toggle="collapse" data-target="#main-nav">
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="dashboard.html">UniBite</a>
         </div>
-        <div id="requests-container"></div>
+        <div class="collapse navbar-collapse" id="main-nav">
+            <ul class="nav navbar-nav navbar-right">
+                <li>
+                    <a href="#">
+                        <span id="user-name">..</span> |
+                        <span id="user-points">–</span>
+                    </a>
+                </li>
+                <li><a href="create_meal.html">Νέα Αγγελία</a></li>
+                <li><a href="#" id="btn-logout">Αποσύνδεση</a></li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<div class="container">
+
+    <div id="msg" class="hidden"></div>
+
+    <h3>Οι Αγγελίες μου</h3>
+    <div id="loading-meals">
+        <p class="text-muted">Φόρτωση αγγελιών..</p>
+    </div>
+    <div id="meals-container"></div>
+
+    <div id="edit-form-container" class="hidden">
+        <h4>Επεξεργασία Αγγελίας</h4>
+        <form id="edit-form">
+            <input type="hidden" id="edit-meal-id">
+            <div class="form-group">
+                <label>Τίτλος</label>
+                <input type="text" class="form-control" id="edit-title">
+            </div>
+            <div class="form-group">
+                <label>Περιγραφή</label>
+                <textarea class="form-control" id="edit-description" rows="3"></textarea>
+            </div>
+            <div class="form-group">
+                <label>Αριθμός μερίδων</label>
+                <input type="number" class="form-control" id="edit-portions" min="1">
+            </div>
+            <div class="form-group">
+                <label>Σημείο παράδοσης</label>
+                <input type="text" class="form-control" id="edit-location">
+            </div>
+            <div class="form-group">
+                <label>Ώρα παραλαβής</label>
+                <input type="text" class="form-control" id="edit-time">
+            </div>
+            <div class="form-group">
+                <label>Αλλεργιογόνα</label>
+                <input type="text" class="form-control" id="edit-allergens"
+                       placeholder="π.χ. Γάλα, Αυγά">
+            </div>
+            <button type="submit" class="btn btn-primary">Αποθήκευση</button>
+            <button type="button" class="btn btn-default" id="btn-cancel-edit">Ακύρωση</button>
+        </form>
     </div>
 
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
-    <script src="dashboard.js"></script>
- 
+    <hr>
+
+    <h3>Αιτήματα Κράτησης</h3>
+    <div id="loading-requests">
+        <p class="text-muted">Φόρτωση αιτημάτων..</p>
+    </div>
+    <div id="requests-container"></div>
+
+</div>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+<script src="dashboard.js"></script>
+
 </body>
 </html>
