@@ -1,7 +1,4 @@
 <?php
-
-<?php
-
 session_start();
 header("Content-Type: application/json");
 include("db.php");
@@ -64,7 +61,13 @@ if (!$valid) {
     exit();
 }
 
-$sql_update = "UPDATE requests SET status = '$new_status' WHERE id = $request_id";
+if ($new_status === 'collected') {
+    $sql_update = "UPDATE requests SET status = '$new_status', collected_at = NOW()
+                   WHERE id = $request_id";
+} else {
+    $sql_update = "UPDATE requests SET status = '$new_status' WHERE id = $request_id";
+}
+
 if (!$conn->query($sql_update)) {
     echo json_encode(["success" => false, "message" => "Σφάλμα ενημέρωσης: " . $conn->error]);
     $conn->close();

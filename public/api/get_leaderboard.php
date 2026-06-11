@@ -15,11 +15,13 @@ if ($_SESSION['role'] != 'admin') {
     exit();
 }
 
+
 $sql_donor = "SELECT u.firstName, u.lastName, COUNT(r.id) AS total_collected
               FROM requests r
-              JOIN users u ON r.consumer_id = u.id
+              JOIN meals m ON r.meal_id = m.id
+              JOIN users u ON m.cook_id = u.id
               WHERE r.status = 'collected'
-              GROUP BY r.consumer_id
+              GROUP BY m.cook_id
               ORDER BY total_collected DESC
               LIMIT 1";
 
@@ -32,8 +34,8 @@ if ($res_donor && $res_donor->num_rows > 0) {
 
 $sql_meals = "SELECT m.title, AVG(rt.rating) AS avg_rating
               FROM ratings rt
-              JOIN requests r  ON rt.request_id = r.id
-              JOIN meals m     ON r.meal_id = m.id
+              JOIN requests r ON rt.request_id = r.id
+              JOIN meals m    ON r.meal_id = m.id
               GROUP BY m.id
               ORDER BY avg_rating DESC
               LIMIT 5";
