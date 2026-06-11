@@ -1,16 +1,10 @@
-
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-    font-family: "Poppins", serif;
-}
-
 body {
     background-color: #f5f5f5;
     font-family: Arial, sans-serif;
+    color: #333333;
 }
 
+/* Navbar  */
 .navbar-default {
     background-color: #ffffff;
     border-bottom: 2px solid #e41515;
@@ -30,30 +24,94 @@ body {
     color: #e41515;
 }
 
+/* Container spacing  */
 .container .row {
     margin-top: 50px;
 }
 
 .btn-primary {
     background-color: #e41515;
-    border-color: #224de6;
+    border-color: #cc0000;
     color: #ffffff;
 }
 
 .btn-primary:hover {
-    background-color: #e41515;
-    border-color: #a85d19;
+    background-color: #cc0000;
+    border-color: #aa0000;
     color: #ffffff;
 }
 
 .form-control:focus {
-    border-color: #e67e22;
+    border-color: #e41515;
 }
 
+.meal-card {
+    margin-bottom: 15px;
+    border: 1px solid #dddddd;
+}
+
+.meal-card .panel-body {
+    padding: 15px;
+}
+
+.meal-title {
+    font-size: 16px;
+    margin: 0;
+}
+
+.meal-meta {
+    font-size: 13px;
+    margin-bottom: 8px;
+}
+
+.meal-location {
+    font-size: 13px;
+    color: #777777;
+}
+
+.meal-inactive {
+    opacity: 0.6;
+}
+
+
+#map {
+    height: 400px;
+    width: 100%;
+    margin-bottom: 15px;
+    border: 1px solid #dddddd;
+}
+
+.star-group {
+    margin-bottom: 10px;
+}
+
+.star-btn {
+    background: none;
+    border: none;
+    font-size: 28px;
+    color: #cccccc;
+    cursor: pointer;
+    padding: 2px;
+}
+
+.star-btn.selected {
+    color: #e41515;
+}
+
+/* Βοηθητικές κλάσεις  */
 .hidden {
     display: none;
 }
 
+/* Filter bar (feed) */
+#filter-bar {
+    background-color: #ffffff;
+    border-bottom: 1px solid #dddddd;
+    padding: 10px 0;
+    margin-bottom: 15px;
+}
+
+/*  Footer  */
 footer {
     margin-top: 40px;
     padding: 20px;
@@ -61,4 +119,62 @@ footer {
     color: #aaaaaa;
     font-size: 13px;
     border-top: 1px solid #dddddd;
+}
+
+
+
+/* Mobile  */
+@media (max-width: 767px) {
+
+    .navbar-brand {
+        font-size: 16px;
+    }
+
+    #map {
+        height: 250px;
+    }
+
+    .meal-title {
+        font-size: 14px;
+    }
+
+    .container .row {
+        margin-top: 20px;
+    }
+
+    /* Ο πίνακας αιτημάτων γίνεται scrollable σε mobile */
+    .table-responsive-custom {
+        overflow-x: auto;
+    }
+
+    /* buttons σε κινητό */
+    .btn-sm {
+        display: block;
+        width: 100%;
+        margin-bottom: 5px;
+    }
+}
+
+/* Tablet */
+@media (min-width: 768px) and (max-width: 991px) {
+
+    #map {
+        height: 300px;
+    }
+
+    .meal-title {
+        font-size: 15px;
+    }
+}
+
+/* Desktop */
+@media (min-width: 992px) {
+
+    #map {
+        height: 400px;
+    }
+
+    .container .row {
+        margin-top: 50px;
+    }
 }
