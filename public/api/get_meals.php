@@ -1,12 +1,8 @@
 <?php
-// ---------------
-//  get_meals.php — Επιστρέφει αγγελίες φαγητού
-// ---------------
 session_start();
 header("Content-Type: application/json");
 include("db.php");
 
-// Έλεγχος σύνδεσης χρήστη
 if (!isset($_SESSION['user_id'])) {
     echo json_encode(["success" => false, "message" => "Μη εξουσιοδοτημένη πρόσβαση."]);
     $conn->close();
@@ -15,11 +11,9 @@ if (!isset($_SESSION['user_id'])) {
 
 $user_id = $_SESSION['user_id'];
 
-// Μία συγκεκριμένη αγγελία
 if (isset($_GET['id']) && $_GET['id'] != '') {
     $meal_id = $_GET['id'];
 
-    // Στοιχεία αγγελίας
     $sql_meal = "SELECT
                      m.id,
                      m.cook_id,
@@ -35,12 +29,7 @@ if (isset($_GET['id']) && $_GET['id'] != '') {
                      m.lat,
                      m.lng,
                      u.firstName AS cook_firstName,
-                     u.lastName  AS cook_lastName,
-                     CASE
-                         WHEN TIMESTAMPDIFF(HOUR, m.created_at, NOW()) >= 48 THEN 'expired'
-                         WHEN m.portions_available > 0                       THEN 'active'
-                         ELSE 'inactive'
-                     END AS status
+                     u.lastName  AS cook_lastName
                  FROM meals m
                  JOIN users u ON m.cook_id = u.id
                  WHERE m.id = $meal_id";
@@ -55,6 +44,18 @@ if (isset($_GET['id']) && $_GET['id'] != '') {
 
     $meal = $res_meal->fetch_assoc();
 
+    $created   = strtotime($meal['created_at']);
+    $now       = time();
+    $hours_old = ($now - $created) / 3600;
+
+    if ($hours_old >= 48) {
+        $meal['status'] = 'expired';
+    } else if ($meal['portions_available'] > 0) {
+        $meal['status'] = 'active';
+    } else {
+        $meal['status'] = 'inactive';
+    }
+
     $sql_req = "SELECT id, status FROM requests
                 WHERE meal_id = $meal_id
                 AND consumer_id = $user_id
@@ -67,10 +68,9 @@ if (isset($_GET['id']) && $_GET['id'] != '') {
     if ($res_req->num_rows > 0) {
         $user_request = $res_req->fetch_assoc();
 
-        // Αν υπάρχει αίτημα, ψάχνουμε αν έχει αξιολόγηση
-        $req_id      = $user_request['id'];
-        $sql_rating  = "SELECT rating FROM ratings WHERE request_id = $req_id";
-        $res_rating  = $conn->query($sql_rating);
+        $req_id     = $user_request['id'];
+        $sql_rating = "SELECT rating FROM ratings WHERE request_id = $req_id";
+        $res_rating = $conn->query($sql_rating);
 
         if ($res_rating->num_rows > 0) {
             $rating_row             = $res_rating->fetch_assoc();
@@ -90,7 +90,6 @@ if (isset($_GET['id']) && $_GET['id'] != '') {
     exit();
 }
 
-// Όλες οι αγγελίες
 $meals = [];
 
 $sql = "SELECT
@@ -107,20 +106,28 @@ $sql = "SELECT
             m.lat,
             m.lng,
             u.firstName AS cook_firstName,
-            u.lastName  AS cook_lastName,
-            CASE
-                WHEN m.portions_available > 0 THEN 'active'
-                ELSE 'inactive'
-            END AS status
+            u.lastName  AS cook_lastName
         FROM meals m
-        JOIN users u ON m.cook_id = u.idσ
-        WHERE TIMESTAMPDIFF(HOUR, m.created_at, NOW()) < 48
+        JOIN users u ON m.cook_id = u.id
         ORDER BY m.created_at DESC";
 
 $result = $conn->query($sql);
 
 if ($result) {
     while ($row = $result->fetch_assoc()) {
+
+        $created   = strtotime($row['created_at']);
+        $now       = time();
+        $hours_old = ($now - $created) / 3600;
+
+        if ($hours_old >= 48) {
+            continue;
+        } else if ($row['portions_available'] > 0) {
+            $row['status'] = 'active';
+        } else {
+            $row['status'] = 'inactive';
+        }
+
         array_push($meals, $row);
     }
 }

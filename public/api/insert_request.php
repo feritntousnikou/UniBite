@@ -19,7 +19,6 @@ if (!isset($_POST['meal_id']) || $_POST['meal_id'] == '') {
 
 $meal_id = $_POST['meal_id'];
 
-// Έλεγχος πόντων χρήστη
 $sql_points = "SELECT points FROM users WHERE id = $consumer_id";
 $res_points = $conn->query($sql_points);
 $user       = $res_points->fetch_assoc();
@@ -30,9 +29,7 @@ if ($user['points'] < 1) {
     exit();
 }
 
-// Έλεγχος αγγελίας
-$sql_meal = "SELECT id, cook_id, portions_available,
-                    TIMESTAMPDIFF(HOUR, created_at, NOW()) AS hours_old
+$sql_meal = "SELECT id, cook_id, portions_available, created_at
              FROM meals
              WHERE id = $meal_id";
 $res_meal = $conn->query($sql_meal);
@@ -51,7 +48,11 @@ if ($meal['cook_id'] == $consumer_id) {
     exit();
 }
 
-if ($meal['hours_old'] >= 48) {
+$created   = strtotime($meal['created_at']);
+$now       = time();
+$hours_old = ($now - $created) / 3600;
+
+if ($hours_old >= 48) {
     echo json_encode(["success" => false, "message" => "Η αγγελία έχει λήξει."]);
     $conn->close();
     exit();
@@ -63,7 +64,6 @@ if ($meal['portions_available'] <= 0) {
     exit();
 }
 
-// Έλεγχος για διπλό αίτημα
 $sql_dup = "SELECT id FROM requests
             WHERE meal_id = $meal_id
             AND consumer_id = $consumer_id
@@ -76,7 +76,6 @@ if ($res_dup->num_rows > 0) {
     exit();
 }
 
-// Εισαγωγή αιτήματος
 $sql_insert = "INSERT INTO requests (meal_id, consumer_id, status)
                VALUES ($meal_id, $consumer_id, 'pending')";
 
