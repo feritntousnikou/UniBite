@@ -10,7 +10,7 @@ if (!isset($_SESSION['user_id'])) {
     exit();
 }
 
-$sql = "SELECT r.id, r.consumer_id
+$sql = "SELECT r.id, r.consumer_id, r.collected_at
         FROM requests r
         WHERE r.status = 'collected'
         AND r.penalty_applied = 0
@@ -21,6 +21,10 @@ $penalized = 0;
 
 if ($result) {
     while ($row = $result->fetch_assoc()) {
+
+        if (!isset($row['collected_at']) || $row['collected_at'] === null) {
+            continue;
+        }
 
         $collected = strtotime($row['collected_at']);
         $now       = time();

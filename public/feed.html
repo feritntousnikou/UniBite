@@ -106,6 +106,7 @@ var map;
 var markers  = [];
 
 document.addEventListener("DOMContentLoaded", function() {
+    fetch("api/check_rating_penalty.php");
     initMap();
     loadUserPoints();
     loadMeals();

@@ -39,12 +39,13 @@ if ($res_check->num_rows == 0) {
 }
 
 $sql = "UPDATE meals
-        SET title           = '$title',
-            description     = '$description',
-            portions_total  = $portions_total,
-            pickup_location = '$pickup_location',
-            pickup_time     = '$pickup_time',
-            allergens       = '$allergens'
+        SET title              = '$title',
+            description        = '$description',
+            portions_available = portions_available + ($portions_total - portions_total),
+            portions_total     = $portions_total,
+            pickup_location    = '$pickup_location',
+            pickup_time        = '$pickup_time',
+            allergens          = '$allergens'
         WHERE id = $meal_id AND cook_id = $cook_id";
 
 if ($conn->query($sql)) {
