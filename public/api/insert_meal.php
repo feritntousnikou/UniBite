@@ -31,8 +31,8 @@ $photo = '';
 
 if (isset($_FILES['photo']) && $_FILES['photo']['error'] == 0) {
     $filename = time() . '_' . $_FILES['photo']['name'];
-    $dest     = '../upload/' . $filename;
-
+    $dest = 'C:/wamp64/www/unibite/upload/' . $filename;
+    
     if (move_uploaded_file($_FILES['photo']['tmp_name'], $dest)) {
         $photo = $filename;
     }
